@@ -5,18 +5,19 @@ class MethanolCalculator {
         this.data = {
             countries: [
                 {"name": "Algeria", "name_en": "Algeria", "name_ru": "Алжир", "region": "Africa", "price": 450, "tax": 0},
-                {"name": "Canada", "name_en": "Canada", "name_ru": "Канада", "region": "North America", "price": 891, "tax": 68},
-                {"name": "China", "name_en": "China", "name_ru": "Китай", "region": "Asia", "price": 400, "tax": 0},
-                {"name": "France", "name_en": "France", "name_ru": "Франция", "region": "Europe", "price": 750, "tax": 149},
-                {"name": "Germany", "name_en": "Germany", "name_ru": "Германия", "region": "Europe", "price": 750, "tax": 149},
+                {"name": "Canada", "name_en": "Canada", "name_ru": "Канада", "region": "North America", "price": 625, "tax": 74},
+                {"name": "China", "name_en": "China", "name_ru": "Китай", "region": "Asia", "price": 350, "tax": 15},
+                {"name": "France", "name_en": "France", "name_ru": "Франция", "region": "Europe", "price": 625, "tax": 51},
+                {"name": "Germany", "name_en": "Germany", "name_ru": "Германия", "region": "Europe", "price": 625, "tax": 57},
                 {"name": "Iran", "name_en": "Iran", "name_ru": "Иран", "region": "Middle East", "price": 400, "tax": 0},
                 {"name": "Kazakhstan", "name_en": "Kazakhstan", "name_ru": "Казахстан", "region": "Asia", "price": 375, "tax": 0},
-                {"name": "Norway", "name_en": "Norway", "name_ru": "Норвегия", "region": "Europe", "price": 750, "tax": 220},
+                {"name": "Norway", "name_en": "Norway", "name_ru": "Норвегия", "region": "Europe", "price": 625, "tax": 90},
                 {"name": "Qatar", "name_en": "Qatar", "name_ru": "Катар", "region": "Middle East", "price": 400, "tax": 0},
+                {"name": "Romania", "name_en": "Romania", "name_ru": "Румыния", "region": "Europe", "price": 625, "tax": 70},
                 {"name": "Russia", "name_en": "Russia", "name_ru": "Россия", "region": "Asia", "price": 375, "tax": 0},
                 {"name": "Saudi Arabia", "name_en": "Saudi Arabia", "name_ru": "Саудовская Аравия", "region": "Middle East", "price": 400, "tax": 0},
                 {"name": "UAE", "name_en": "UAE", "name_ru": "ОАЭ", "region": "Middle East", "price": 400, "tax": 0},
-                {"name": "USA", "name_en": "USA", "name_ru": "США", "region": "North America", "price": 891, "tax": 0}
+                {"name": "USA", "name_en": "USA", "name_ru": "США", "region": "North America", "price": 778, "tax": 15}
             ],
             transportCosts: {
                 "on site": {"min": 0, "max": 0, "default": 0},
@@ -236,7 +237,10 @@ class MethanolCalculator {
 
     setupEventListeners() {
         // Основные контролы
-        document.getElementById('sourceCountry').addEventListener('change', () => this.updateDestinationPrice());
+        document.getElementById('sourceCountry').addEventListener('change', () => {   
+            this.updateDestinationPrice();                                            
+            this.updateCarbonTax();                                                 
+        });            
         document.getElementById('destinationCountry').addEventListener('change', () => this.updateDestinationPrice());
         document.getElementById('gasVolume').addEventListener('input', () => this.updateCalculations());
         document.getElementById('discountRate').addEventListener('input', () => this.updateCalculations());
@@ -302,7 +306,7 @@ class MethanolCalculator {
     updateCarbonTax() {
         const sourceCountry = this.data.countries.find(c => c.name === document.getElementById('sourceCountry').value);
         if (sourceCountry) {
-            document.getElementById('carbonTax').value = sourcecountry.tax;
+            document.getElementById('carbonTax').value = sourceCountry.tax;
         }
         this.updateCalculations();
     }
@@ -354,8 +358,8 @@ class MethanolCalculator {
         // Расчет OPEX (млн $/год)
         const productionOpex = methanolProduction * opex / 1000000;
         const transportOpex = methanolProduction * transportCost / 1000000;
-        const taxOpex = methanolProduction * this.data.constants.co2Factor * carbonTax / 1000000;
-        const totalOpex = productionOpex + transportOpex + taxOpex;
+        const taxSaving = methanolProduction * this.data.constants.co2Factor * carbonTax / 1000000; // ← новое имя и смысл
+        const totalOpex = productionOpex + transportOpex - taxSaving; // ← вычитаем экономию
 
         // Расчет выручки (млн $/год)
         const grossRevenue = methanolProduction * methanolPrice / 1000000;
@@ -394,7 +398,7 @@ class MethanolCalculator {
             co2Reduction,
             productionOpex,
             transportOpex,
-            taxOpex,
+            taxSaving, 
             discountRate: discountRateDecimal
         };
     }
@@ -467,7 +471,7 @@ class MethanolCalculator {
                         metrics.capex,
                         metrics.productionOpex,
                         metrics.transportOpex,
-                        metrics.taxOpex
+                        Math.abs(metrics.taxSaving)
                     ],
                     backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5']
                 }]
@@ -570,8 +574,8 @@ class MethanolCalculator {
         const grossRevenue = methanolProduction * adjustedPrice / 1000000;
         const productionOpex = methanolProduction * adjustedOpex / 1000000;
         const transportOpex = methanolProduction * adjustedTransportCost / 1000000;
-        const taxOpex = methanolProduction * this.data.constants.co2Factor * carbonTax / 1000000;
-        const totalOpex = productionOpex + transportOpex + taxOpex;
+        const taxSaving = methanolProduction * this.data.constants.co2Factor * carbonTax / 1000000;
+        const totalOpex = productionOpex + transportOpex - taxSaving;
         
         const annualCashFlow = grossRevenue - totalOpex;
         
