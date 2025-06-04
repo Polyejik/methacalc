@@ -63,6 +63,8 @@ class MethanolCalculator {
                 capex: "CAPEX (млн $)",
                 opexValue: "OPEX (млн $/год)",
                 co2Reduction: "Сокращение CO₂ (тыс т/год)",
+                methanolProduction: "Производство метанола (тыс т/год)",
+                carbonSaving: "Углеродный налог (экономия)",
                 sensitivityChart: "Анализ чувствительности NPV",
                 costStructure: "Структура затрат",
                 cashFlow: "Денежный поток",
@@ -109,6 +111,8 @@ class MethanolCalculator {
                 capex: "CAPEX (million $)",
                 opexValue: "OPEX (million $/year)",
                 co2Reduction: "CO₂ Reduction (thousand t/year)",
+                methanolProduction: "Methanol production (thousand t/year)",
+                carbonSaving: "Carbon tax (saving)",
                 sensitivityChart: "NPV Sensitivity Analysis",
                 costStructure: "Cost Structure",
                 cashFlow: "Cash Flow",
@@ -331,7 +335,7 @@ class MethanolCalculator {
             return gasVolume * (baseCapex / baseVolume) * factor;
         } else {
             const scaleRatio = gasVolume / baseVolume;
-            return baseCapex * Math.pow(scaleRatio, this.data.constants.scaleExponent);
+            return baseCapex * scaleRatio;
         }
     }
 
@@ -423,6 +427,7 @@ class MethanolCalculator {
         document.getElementById('capexValue').textContent = `$${metrics.capex.toFixed(1)}`;
         document.getElementById('opexValue').textContent = `$${metrics.opex.toFixed(1)}`;
         document.getElementById('co2Value').textContent = `${(metrics.co2Reduction / 1000).toFixed(1)}`;
+        document.getElementById('productionValue').textContent = `${(metrics.methanolProduction/1000).toFixed(1)}`;
 
         // Цветовые индикаторы
         const roiElement = document.getElementById('roiValue');
@@ -445,7 +450,7 @@ class MethanolCalculator {
     }
 
     clearResults() {
-        ['npvValue', 'roiValue', 'paybackValue', 'capexValue', 'opexValue', 'co2Value'].forEach(id => {
+        ['npvValue', 'roiValue', 'paybackValue', 'capexValue', 'opexValue', 'co2Value','productionValue' ].forEach(id => {
             document.getElementById(id).textContent = '-';
         });
     }
