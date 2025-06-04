@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Калькулятор ROI метанола</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with methanol drop SVG -->
+        <header class="flex justify-between items-center py-16">
+            <div class="flex items-center gap-16">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 8c-8 0-14 6-14 14 0 10 14 18 14 18s14-8 14-18c0-8-6-14-14-14z" 
+                          fill="url(#gradient)" stroke="#21808D" stroke-width="2"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#5ad6de"/>
+                            <stop offset="100%" style="stop-color:#36a7bd"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div>
+                    <h1 data-i18n="title">Калькулятор ROI метанола</h1>
+                    <p class="text-secondary" data-i18n="subtitle">Оценка рентабельности проектов переработки факельного газа в метанол</p>
+                </div>
+            </div>
+            <div class="language-switcher">
+                <button class="btn btn--sm language-btn active" data-lang="ru">RU</button>
+                <button class="btn btn--sm language-btn" data-lang="en">EN</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Project Parameters -->
+            <div class="card mb-24">
+                <div class="card__body">
+                    <h2 data-i18n="projectParameters">Параметры проекта</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="sourceCountry" for="sourceCountry">Страна-источник</label>
+                            <select id="sourceCountry" class="form-control">
+                                <option value="" data-i18n="selectCountry">Выберите страну</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="destinationCountry" for="destinationCountry">Страна назначения</label>
+                            <select id="destinationCountry" class="form-control">
+                                <option value="" data-i18n="selectCountry">Выберите страну</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="gasVolume" for="gasVolume">Объем газа (млн м³/год)</label>
+                            <div class="volume-controls">
+                                <input type="range" id="gasVolumeSlider" class="volume-slider" min="10" max="200" value="50" step="5">
+                                <div class="volume-buttons">
+                                    <button class="btn btn--sm volume-btn" data-volume="15">15</button>
+                                    <button class="btn btn--sm volume-btn active" data-volume="50">50</button>
+                                    <button class="btn btn--sm volume-btn" data-volume="100">100</button>
+                                </div>
+                                <input type="number" id="gasVolume" class="form-control volume-input" value="50" min="10" max="200" step="1">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="discountRate" for="discountRate">Ставка дисконтирования (%)</label>
+                            <input type="number" id="discountRate" class="form-control" value="8" min="1" max="20" step="0.1">
+                        </div>
+
+                        <div class="form-group capex-section">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="useManualCapex" class="capex-checkbox">
+                                <label class="checkbox-label" data-i18n="manualCapex" for="useManualCapex">Задать CAPEX вручную</label>
+                            </div>
+                            <input type="number" id="manualCapex" class="form-control" disabled data-i18n-placeholder="capexPlaceholder" placeholder="CAPEX (млн $)" min="1" step="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="methanolPrice" for="methanolPrice">Цена метанола ($/т)</label>
+                            <input type="number" id="methanolPrice" class="form-control" value="450" min="100" step="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="opex" for="opex">OPEX ($/т)</label>
+                            <input type="number" id="opex" class="form-control" value="175" min="50" step="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="carbonTax" for="carbonTax">Углеродный налог ($/т CO₂)</label>
+                            <input type="number" id="carbonTax" class="form-control" value="0" min="0" step="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="transportType" for="transportType">Тип транспорта</label>
+                            <select id="transportType" class="form-control">
+                                <option value="maritime">Морской</option>
+                                <option value="rail">Железнодорожный</option>
+                                <option value="road">Автомобильный</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="transportCost" for="transportCost">Транспортные расходы ($/т)</label>
+                            <input type="number" id="transportCost" class="form-control" value="25" min="0" step="1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensitivity Analysis -->
+            <div class="card mb-24">
+                <div class="card__body">
+                    <h2 data-i18n="sensitivityAnalysis">Анализ чувствительности</h2>
+                    <div class="sensitivity-controls">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="sensitivityRange" for="sensitivityRange">Диапазон анализа</label>
+                            <select id="sensitivityRange" class="form-control">
+                                <option value="15">± 15%</option>
+                                <option value="30" selected>± 30%</option>
+                                <option value="50">± 50%</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="results-grid">
+                <div class="card">
+                    <div class="card__body">
+                        <h3 data-i18n="financialMetrics">Финансовые метрики</h3>
+                        <div class="metrics">
+                            <div class="metric">
+                                <span class="metric-label" data-i18n="npv">NPV (млн $)</span>
+                                <span class="metric-value" id="npvValue">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label" data-i18n="roi">ROI (%)</span>
+                                <span class="metric-value" id="roiValue">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label" data-i18n="payback">Срок окупаемости (лет)</span>
+                                <span class="metric-value" id="paybackValue">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label" data-i18n="capex">CAPEX (млн $)</span>
+                                <span class="metric-value" id="capexValue">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label" data-i18n="opexValue">OPEX (млн $/год)</span>
+                                <span class="metric-value" id="opexValue">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label" data-i18n="co2Reduction">Сокращение CO₂ (тыс т/год)</span>
+                                <span class="metric-value" id="co2Value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3 data-i18n="sensitivityChart">Анализ чувствительности NPV</h3>
+                        <div class="chart-container">
+                            <canvas id="sensitivityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3 data-i18n="costStructure">Структура затрат</h3>
+                        <div class="chart-container">
+                            <canvas id="costsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3 data-i18n="cashFlow">Денежный поток</h3>
+                        <div class="chart-container">
+                            <canvas id="cashflowChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="card mt-24">
+                <div class="card__body">
+                    <h3 data-i18n="disclaimer">Важное примечание</h3>
+                    <div class="disclaimer-content">
+                        <p data-i18n="disclaimerText">Это предварительные расчеты для оценочных целей. Представленные данные основаны на публичных источниках, включая ценовые индикаторы Metanex. Для точной оценки инвестиционного проекта и принятия окончательных решений необходима детальная консультация с экспертами.</p>
+                        
+                        <div class="sources">
+                            <h4 data-i18n="dataSources">Источники данных:</h4>
+                            <ul>
+                                <li><strong data-i18n="methanolPrices">Цены на метанол:</strong> <a href="https://www.methanex.com/pricing" target="_blank">Metanex Price Index 2025</a></li>
+                                <li><strong data-i18n="carbonTax">Углеродные налоги:</strong> <span data-i18n="governmentSources">официальные источники правительств стран</span></li>
+                                <li><strong data-i18n="transportCosts">Транспортные расходы:</strong> <span data-i18n="industryEstimates">отраслевые оценки</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
